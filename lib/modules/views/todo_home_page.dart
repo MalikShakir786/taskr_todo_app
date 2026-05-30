@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:my_todo/modules/controllers/todo_api_controller.dart';
+import 'package:my_todo/utils/utils.dart';
 
 import '../../models/todo_item.dart';
 import '../controllers/todo_controller.dart';
@@ -17,7 +19,7 @@ class TodoHomePage extends StatefulWidget {
 
 class _TodoHomePageState extends State<TodoHomePage>
     with TickerProviderStateMixin {
-  final TodoController _ctrl = Get.put(TodoController());
+  final TodoApiController _ctrl = Get.put(TodoApiController());
   late AnimationController _fabAnimCtrl;
   late Animation<double> _fabAnim;
 
@@ -31,6 +33,10 @@ class _TodoHomePageState extends State<TodoHomePage>
     _fabAnim = CurvedAnimation(parent: _fabAnimCtrl, curve: Curves.elasticOut);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) _fabAnimCtrl.forward();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ctrl.fetchTasks();
     });
   }
 
@@ -48,7 +54,7 @@ class _TodoHomePageState extends State<TodoHomePage>
       builder: (_) => const AddTodoSheet(),
     );
     if (result != null) {
-      _ctrl.addTodo(result);
+      _ctrl.addTask(result);
     }
   }
 
@@ -104,12 +110,7 @@ class _TodoHomePageState extends State<TodoHomePage>
                 _buildStats(),
                 _buildFilterTabs(),
                 Expanded(
-                  child: Obx(() {
-                    final filtered = _ctrl.filtered;
-                    return filtered.isEmpty
-                        ? _buildEmptyState()
-                        : _buildTodoList(filtered);
-                  }),
+                  child: _buildTodoList()
                 ),
               ],
             ),
@@ -169,53 +170,55 @@ class _TodoHomePageState extends State<TodoHomePage>
           ),
           Row(
             children: [
-              Obx(() => GestureDetector(
-                onTap: _openHistory,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF13131A),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _ctrl.deleteHistory.isNotEmpty
-                              ? const Color(0xFFFF4F5E).withOpacity(0.3)
-                              : Colors.white12,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.history_rounded,
-                        color: Colors.white54,
-                        size: 20,
-                      ),
-                    ),
-                    if (_ctrl.deleteHistory.isNotEmpty)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF4F5E),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            '${_ctrl.deleteHistory.length > 9 ? '9+' : _ctrl.deleteHistory.length}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              fontFamily: 'Courier',
+              Obx(() =>
+                  GestureDetector(
+                    onTap: _openHistory,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF13131A),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _ctrl.deleteHistory.isNotEmpty
+                                  ? const Color(0xFFFF4F5E).withOpacity(0.3)
+                                  : Colors.white12,
                             ),
                           ),
+                          child: const Icon(
+                            Icons.history_rounded,
+                            color: Colors.white54,
+                            size: 20,
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              )),
+                        if (_ctrl.deleteHistory.isNotEmpty)
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF4F5E),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${_ctrl.deleteHistory.length > 9 ? '9+' : _ctrl
+                                    .deleteHistory.length}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'Courier',
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )),
               const SizedBox(width: 12),
               Obx(() => _buildProgressRing()),
             ],
@@ -226,14 +229,16 @@ class _TodoHomePageState extends State<TodoHomePage>
   }
 
   String _greeting() {
-    final h = DateTime.now().hour;
+    final h = DateTime
+        .now()
+        .hour;
     if (h < 12) return 'GOOD MORNING';
     if (h < 17) return 'GOOD AFTERNOON';
     return 'GOOD EVENING';
   }
 
   Widget _buildProgressRing() {
-    final total = _ctrl.todos.length;
+    final total = _ctrl.tasks.length;
     final done = _ctrl.doneCount;
     final progress = total == 0 ? 0.0 : done / total;
 
@@ -262,27 +267,28 @@ class _TodoHomePageState extends State<TodoHomePage>
   }
 
   Widget _buildStats() {
-    return Obx(() => SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-        child: Row(
-          children: [
-            _statChip(
-                '${_ctrl.activeCount}', 'ACTIVE', const Color(0xFFE8FF47)),
-            const SizedBox(width: 12),
-            _statChip(
-                '${_ctrl.doneCount}', 'DONE', const Color(0xFF4FFFB0)),
-            const SizedBox(width: 12),
-            _statChip(
-                '${_ctrl.todos.length}', 'TOTAL', Colors.white30),
-            const SizedBox(width: 12),
-            _statChip('${_ctrl.deleteHistory.length}', 'DELETED',
-                const Color(0xFFFF4F5E)),
-          ],
-        ),
-      ),
-    ));
+    return Obx(() =>
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            child: Row(
+              children: [
+                _statChip(
+                    '${_ctrl.activeCount}', 'ACTIVE', const Color(0xFFE8FF47)),
+                const SizedBox(width: 12),
+                _statChip(
+                    '${_ctrl.doneCount}', 'DONE', const Color(0xFF4FFFB0)),
+                const SizedBox(width: 12),
+                _statChip(
+                    '${_ctrl.tasks.length}', 'TOTAL', Colors.white30),
+                const SizedBox(width: 12),
+                _statChip('${_ctrl.deleteHistory.length}', 'DELETED',
+                    const Color(0xFFFF4F5E)),
+              ],
+            ),
+          ),
+        ));
   }
 
   Widget _statChip(String value, String label, Color accent) {
@@ -321,56 +327,71 @@ class _TodoHomePageState extends State<TodoHomePage>
 
   Widget _buildFilterTabs() {
     const labels = ['ALL', 'ACTIVE', 'DONE'];
-    return Obx(() => Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      child: Row(
-        children: List.generate(3, (i) {
-          final selected = _ctrl.selectedFilter.value == i;
-          return GestureDetector(
-            onTap: () => _ctrl.setFilter(i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 10),
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: selected
-                    ? const Color(0xFFE8FF47)
-                    : const Color(0xFF13131A),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                labels[i],
-                style: TextStyle(
-                  color: selected
-                      ? const Color(0xFF0A0A0F)
-                      : Colors.white38,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                  fontFamily: 'Courier',
+    return Obx(() =>
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          child: Row(
+            children: List.generate(3, (i) {
+              final selected = _ctrl.selectedFilter.value == i;
+              return GestureDetector(
+                onTap: () => _ctrl.setFilter(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(right: 10),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? const Color(0xFFE8FF47)
+                        : const Color(0xFF13131A),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    labels[i],
+                    style: TextStyle(
+                      color: selected
+                          ? const Color(0xFF0A0A0F)
+                          : Colors.white38,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                      fontFamily: 'Courier',
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          );
-        }),
-      ),
-    ));
+              );
+            }),
+          ),
+        ));
   }
 
-  Widget _buildTodoList(List<TodoItem> items) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
-      itemCount: items.length,
-      itemBuilder: (ctx, i) {
-        return TodoCard(
-          key: ValueKey(items[i].id),
-          item: items[i],
-          onToggle: () => _ctrl.toggleDone(items[i]),
-          onDelete: () => _ctrl.deleteTodo(items[i]),
+  Widget _buildTodoList() {
+    return Obx(() {
+      if(_ctrl.isLoading.value){
+        return Utils.apiLoader;
+      } else if(_ctrl.tasks.isEmpty){
+        return Center(
+          child: Text('No Tasks Found',
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.white
+          ),
+          ),
         );
-      },
-    );
+      }
+      return ListView.builder(
+        padding: EdgeInsets.fromLTRB(24, 8, 24, 120),
+        itemCount: _ctrl.tasks.length,
+        itemBuilder: (ctx, i) {
+          return TodoCard(
+            key: ValueKey(_ctrl.tasks[i].id),
+            item: _ctrl.tasks[i],
+            onToggle: () => _ctrl.toggleDone(_ctrl.tasks[i]),
+            onDelete: () => _ctrl.deleteTodo(_ctrl.tasks[i]),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildEmptyState() {

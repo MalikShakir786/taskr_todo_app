@@ -87,10 +87,10 @@ class HistoryCardState extends State<HistoryCard>
                       decorationColor: Colors.white24,
                     ),
                   ),
-                  if (item.note != null) ...[
+                  if (item.description != null) ...[
                     const SizedBox(height: 3),
                     Text(
-                      item.note!,
+                      item.description!,
                       style: const TextStyle(
                           color: Colors.white24, fontSize: 11),
                     ),

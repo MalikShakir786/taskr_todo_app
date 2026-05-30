@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:my_todo/models/task_item.dart';
 
-import '../../constants/app_constants.dart';
-import '../../models/todo_item.dart';
+import '../../constants/app_enums.dart';
 
 class TodoCard extends StatefulWidget {
-  final TodoItem item;
+  final TaskItem item;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
 
@@ -40,28 +40,6 @@ class TodoCardState extends State<TodoCard>
     super.dispose();
   }
 
-  Color get _priorityColor {
-    switch (widget.item.priority) {
-      case Priority.high:
-        return const Color(0xFFFF4F5E);
-      case Priority.medium:
-        return const Color(0xFFFFB347);
-      case Priority.low:
-        return const Color(0xFF4FFFB0);
-    }
-  }
-
-  String get _priorityLabel {
-    switch (widget.item.priority) {
-      case Priority.high:
-        return 'HIGH';
-      case Priority.medium:
-        return 'MED';
-      case Priority.low:
-        return 'LOW';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
@@ -78,7 +56,7 @@ class TodoCardState extends State<TodoCard>
         background: Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFF4F5E).withOpacity(0.15),
+            color: const Color(0xFFFF4F5E).withAlpha(20),
             borderRadius: BorderRadius.circular(16),
           ),
           alignment: Alignment.centerRight,
@@ -106,16 +84,16 @@ class TodoCardState extends State<TodoCard>
           duration: const Duration(milliseconds: 250),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: item.isDone
+            color: item.isDone.value
                 ? const Color(0xFF0F0F15)
                 : const Color(0xFF13131A),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _showActions
-                  ? const Color(0xFFFF4F5E).withOpacity(0.3)
-                  : item.isDone
-                  ? Colors.white.withOpacity(0.04)
-                  : _priorityColor.withOpacity(0.15),
+                  ? const Color(0xFFFF4F5E).withAlpha(50)
+                  : item.isDone.value
+                  ? Colors.white.withAlpha(10)
+                  : Priority.fromId(item.priority ?? 2).color,
               width: 1,
             ),
           ),
@@ -128,9 +106,9 @@ class TodoCardState extends State<TodoCard>
                   children: [
                     Container(
                       width: 3,
-                      height: item.note != null ? 48 : 20,
+                      height: item.description != null ? 48 : 20,
                       decoration: BoxDecoration(
-                        color: item.isDone ? Colors.white12 : _priorityColor,
+                        color: item.isDone.value ? Colors.white12 : Priority.fromId(item.priority ?? 2).color,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -142,26 +120,26 @@ class TodoCardState extends State<TodoCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.title,
+                              item.title ?? '',
                               style: TextStyle(
-                                color: item.isDone
+                                color: item.isDone.value
                                     ? Colors.white24
                                     : Colors.white,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                decoration: item.isDone
+                                decoration: item.isDone.value
                                     ? TextDecoration.lineThrough
                                     : null,
                                 decorationColor: Colors.white24,
                                 letterSpacing: 0.3,
                               ),
                             ),
-                            if (item.note != null) ...[
+                            if (item.description != null) ...[
                               const SizedBox(height: 5),
                               Text(
-                                item.note!,
+                                item.description!,
                                 style: TextStyle(
-                                  color: item.isDone
+                                  color: item.isDone.value
                                       ? Colors.white12
                                       : Colors.white38,
                                   fontSize: 12,
@@ -184,18 +162,18 @@ class TodoCardState extends State<TodoCard>
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: item.isDone
+                              color: item.isDone.value
                                   ? const Color(0xFF4FFFB0)
                                   : Colors.transparent,
                               border: Border.all(
-                                color: item.isDone
+                                color: item.isDone.value
                                     ? const Color(0xFF4FFFB0)
                                     : Colors.white24,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(7),
                             ),
-                            child: item.isDone
+                            child: item.isDone.value
                                 ? const Icon(Icons.check_rounded,
                                 color: Color(0xFF0A0A0F), size: 16)
                                 : null,
@@ -211,7 +189,7 @@ class TodoCardState extends State<TodoCard>
                             height: 24,
                             decoration: BoxDecoration(
                               color: _showActions
-                                  ? const Color(0xFFFF4F5E).withOpacity(0.15)
+                                  ? const Color(0xFFFF4F5E).withAlpha(30)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(6),
                             ),
@@ -239,7 +217,7 @@ class TodoCardState extends State<TodoCard>
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withAlpha(10),
                       ),
                     ),
                   ),
@@ -252,16 +230,16 @@ class TodoCardState extends State<TodoCard>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _priorityColor.withOpacity(0.1),
+                            color: Priority.fromId(item.priority ?? 2).color.withAlpha(20),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: _priorityColor.withOpacity(0.3),
+                              color: Priority.fromId(item.priority ?? 2).color.withAlpha(50),
                             ),
                           ),
                           child: Text(
-                            '● $_priorityLabel',
+                            '● ${Priority.fromId(item.priority ?? 2).label}',
                             style: TextStyle(
-                              color: _priorityColor,
+                              color: Priority.fromId(item.priority ?? 2).color,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1,
@@ -283,11 +261,11 @@ class TodoCardState extends State<TodoCard>
                               horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFF4F5E)
-                                .withOpacity(0.12),
+                                .withAlpha(20),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: const Color(0xFFFF4F5E)
-                                  .withOpacity(0.3),
+                                  .withAlpha(10),
                             ),
                           ),
                           child: Row(

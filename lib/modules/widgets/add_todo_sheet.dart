@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../constants/app_constants.dart';
+import '../../constants/app_enums.dart';
 import '../../models/todo_item.dart';
 
 class AddTodoSheet extends StatefulWidget {
@@ -29,7 +29,7 @@ class _AddTodoSheetState extends State<AddTodoSheet> {
       TodoItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleCtrl.text.trim(),
-        note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
+        description: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
         priority: _priority,
         createdAt: DateTime.now(),
       ),

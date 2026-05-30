@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:my_todo/services/api_service.dart';
 
-import '../../constants/app_constants.dart';
+import '../../constants/app_enums.dart';
 import '../../models/deleted_item.dart';
 import '../../models/todo_item.dart';
 
@@ -24,6 +25,7 @@ class TodoController extends GetxController {
     _loadFromStorage();
   }
 
+
   void _loadFromStorage() {
     // Load todos
     final rawTodos = _box.read<List>(_todosKey);
@@ -37,7 +39,7 @@ class TodoController extends GetxController {
         TodoItem(
           id: '1',
           title: 'Design the new landing page',
-          note: 'Focus on hero section and typography',
+          description: 'Focus on hero section and typography',
           priority: Priority.high,
           createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         ),
@@ -50,7 +52,7 @@ class TodoController extends GetxController {
         TodoItem(
           id: '3',
           title: 'Buy groceries',
-          note: 'Milk, eggs, bread, coffee',
+          description: 'Milk, eggs, bread, coffee',
           priority: Priority.low,
           isDone: true,
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
