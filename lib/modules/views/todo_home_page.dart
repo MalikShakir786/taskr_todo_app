@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:my_todo/models/task_item.dart';
 import 'package:my_todo/modules/controllers/todo_api_controller.dart';
 import 'package:my_todo/utils/utils.dart';
 
-import '../../models/todo_item.dart';
-import '../controllers/todo_controller.dart';
 import '../widgets/add_todo_sheet.dart';
 import '../widgets/ring_painter.dart';
 import '../widgets/todo_card.dart';
@@ -47,7 +46,7 @@ class _TodoHomePageState extends State<TodoHomePage>
   }
 
   void _addTodo() async {
-    final result = await showModalBottomSheet<TodoItem>(
+    final result = await showModalBottomSheet<TaskItem>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -369,7 +368,7 @@ class _TodoHomePageState extends State<TodoHomePage>
     return Obx(() {
       if(_ctrl.isLoading.value){
         return Utils.apiLoader;
-      } else if(_ctrl.tasks.isEmpty){
+      } else if(_ctrl.filtered.isEmpty){
         return Center(
           child: Text('No Tasks Found',
           style: TextStyle(
@@ -381,13 +380,13 @@ class _TodoHomePageState extends State<TodoHomePage>
       }
       return ListView.builder(
         padding: EdgeInsets.fromLTRB(24, 8, 24, 120),
-        itemCount: _ctrl.tasks.length,
+        itemCount: _ctrl.filtered.length,
         itemBuilder: (ctx, i) {
           return TodoCard(
-            key: ValueKey(_ctrl.tasks[i].id),
-            item: _ctrl.tasks[i],
-            onToggle: () => _ctrl.toggleDone(_ctrl.tasks[i]),
-            onDelete: () => _ctrl.deleteTodo(_ctrl.tasks[i]),
+            key: ValueKey(_ctrl.filtered[i].id),
+            item: _ctrl.filtered[i],
+            onToggle: () => _ctrl.toggleDone(_ctrl.filtered[i]),
+            onDelete: () => _ctrl.deleteTodo(_ctrl.filtered[i].id ?? 0),
           );
         },
       );

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:my_todo/models/task_item.dart';
 
 import '../../constants/app_enums.dart';
-import '../../models/todo_item.dart';
 
 class AddTodoSheet extends StatefulWidget {
   const AddTodoSheet({super.key});
@@ -26,12 +27,13 @@ class _AddTodoSheetState extends State<AddTodoSheet> {
     if (_titleCtrl.text.trim().isEmpty) return;
     Navigator.pop(
       context,
-      TodoItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      TaskItem(
+        id: 6,
         title: _titleCtrl.text.trim(),
         description: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
-        priority: _priority,
+        priority: _priority.id,
         createdAt: DateTime.now(),
+        isDone: false.obs,
       ),
     );
   }

@@ -78,7 +78,7 @@ class HistoryCardState extends State<HistoryCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title,
+                    item.title ?? '',
                     style: const TextStyle(
                       color: Colors.white38,
                       fontSize: 14,

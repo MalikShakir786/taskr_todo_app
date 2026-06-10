@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:my_todo/modules/controllers/todo_api_controller.dart';
 
 import '../../constants/app_enums.dart';
-import '../controllers/todo_controller.dart';
 import '../widgets/history_card.dart';
 
 class DeleteHistoryPage extends StatelessWidget {
   DeleteHistoryPage({super.key});
 
-  final TodoController _ctrl = Get.find();
+  final TodoApiController _ctrl = Get.find();
 
   void _confirmClearAll(BuildContext context) {
     Get.dialog(
@@ -72,9 +72,9 @@ class DeleteHistoryPage extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        Get.back();
-                        _ctrl.clearAllHistory();
-                        Get.back();
+                        // Get.back();
+                        // _ctrl.clearAllHistory();
+                        // Get.back();
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 13),
@@ -246,27 +246,27 @@ class DeleteHistoryPage extends StatelessWidget {
                   height: 1,
                   color: Colors.white.withOpacity(0.06),
                 ),
-                Expanded(
-                  child: Obx(() => _ctrl.deleteHistory.isEmpty
-                      ? _buildEmptyHistory()
-                      : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-                    itemCount: _ctrl.deleteHistory.length,
-                    itemBuilder: (ctx, i) {
-                      final d = _ctrl.deleteHistory[i];
-                      return HistoryCard(
-                        key: ValueKey(
-                            d.item.id + d.deletedAt.toString()),
-                        deleted: d,
-                        timeAgo: _timeAgo(d.deletedAt),
-                        priorityColor: _priorityColor(d.item.priority),
-                        onRestore: () => _ctrl.restoreFromHistory(d),
-                        onRemovePermanently: () =>
-                            _ctrl.removePermanently(d),
-                      );
-                    },
-                  )),
-                ),
+                // Expanded(
+                //   child: Obx(() => _ctrl.deleteHistory.isEmpty
+                //       ? _buildEmptyHistory()
+                //       : ListView.builder(
+                //     padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+                //     itemCount: _ctrl.deleteHistory.length,
+                //     itemBuilder: (ctx, i) {
+                //       final d = _ctrl.deleteHistory[i];
+                //       return HistoryCard(
+                //         key: ValueKey(
+                //             d.item.id + d.deletedAt.toString()),
+                //         deleted: d,
+                //         timeAgo: _timeAgo(d.deletedAt),
+                //         priorityColor: _priorityColor(d.item.priority),
+                //         onRestore: () => _ctrl.restoreFromHistory(d),
+                //         onRemovePermanently: () =>
+                //             _ctrl.removePermanently(d),
+                //       );
+                //     },
+                //   )),
+                // ),
               ],
             ),
           ),

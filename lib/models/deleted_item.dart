@@ -1,7 +1,7 @@
-import 'package:my_todo/models/todo_item.dart';
+import 'package:my_todo/models/task_item.dart';
 
 class DeletedItem {
-  final TodoItem item;
+  final TaskItem item;
   final DateTime deletedAt;
   DeletedItem({required this.item, required this.deletedAt});
 
@@ -11,7 +11,7 @@ class DeletedItem {
   };
 
   factory DeletedItem.fromJson(Map<String, dynamic> json) => DeletedItem(
-    item: TodoItem.fromJson(Map<String, dynamic>.from(json['item'])),
+    item: TaskItem.fromJson(Map<String, dynamic>.from(json['item'])),
     deletedAt: DateTime.parse(json['deletedAt']),
   );
 }
